@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 800" role="img" aria-labelledby="title description">
+  <title id="title">Sample logbook page</title>
+  <desc id="description">A representative sample logbook page with handwritten-style rows, for preview only.</desc>
+  <rect width="640" height="800" fill="#edf1ef"/>
+  <rect x="42" y="28" width="556" height="744" rx="8" fill="#fff" stroke="#cbd4d0" stroke-width="2"/>
+  <text x="82" y="82" fill="#253b37" font-family="Georgia, serif" font-size="22" font-weight="700">DAILY OPERATIONS LOG</text>
+  <text x="82" y="110" fill="#687874" font-family="Arial, sans-serif" font-size="12">SAMPLE PAGE PREVIEW - NOT AN ORIGINAL RECORD</text>
+  <line x1="82" y1="132" x2="558" y2="132" stroke="#93aaa3" stroke-width="2"/>
+  <text x="84" y="166" fill="#445751" font-family="Arial, sans-serif" font-size="13" font-weight="700">DATE</text>
+  <text x="180" y="166" fill="#445751" font-family="Arial, sans-serif" font-size="13" font-weight="700">TIME</text>
+  <text x="264" y="166" fill="#445751" font-family="Arial, sans-serif" font-size="13" font-weight="700">OPERATOR</text>
+  <text x="390" y="166" fill="#445751" font-family="Arial, sans-serif" font-size="13" font-weight="700">ACTIVITY / REMARKS</text>
+  <g fill="none" stroke="#d6dfdb" stroke-width="1.5">
+    <path d="M82 180H558M82 252H558M82 324H558M82 396H558M82 468H558M82 540H558M82 612H558M82 684H558"/>
+    <path d="M164 146V684M246 146V684M374 146V684"/>
+  </g>
+  <g fill="#43665d" font-family="Georgia, serif" font-size="15" font-style="italic">
+    <text x="91" y="218">10 Oct</text><text x="177" y="218">07:35</text><text x="258" y="218">J. Lee</text><text x="386" y="210">Cooling system inspection</text><text x="386" y="232" font-size="12">No unusual noise observed.</text>
+    <text x="91" y="290">10 Oct</text><text x="177" y="290">09:10</text><text x="258" y="290">M. Patel</text><text x="386" y="282">Replaced filter assembly</text><text x="386" y="304" font-size="12">Routine maintenance completed.</text>
+    <text x="91" y="362">09 Oct</text><text x="177" y="362">11:25</text><text x="258" y="362">A. Chen</text><text x="386" y="354">Recorded pressure readings</text><text x="386" y="376" font-size="12">Gauges within normal range.</text>
+    <text x="91" y="434">09 Oct</text><text x="177" y="434">14:40</text><text x="258" y="434">R. Brooks</text><text x="386" y="426">Safety equipment check</text><text x="386" y="448" font-size="12">Follow-up items noted.</text>
+  </g>
+  <g fill="#788983" font-family="Arial, sans-serif" font-size="12">
+    <text x="82" y="728">This image represents sample data only.</text>
+    <text x="558" y="728" text-anchor="end">LOG-01</text>
+  </g>
+</svg>

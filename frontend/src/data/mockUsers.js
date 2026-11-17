@@ -1,0 +1,58 @@
+import { ROLES } from "@/lib/permissions";
+
+export const MOCK_USERS = Object.freeze([
+  {
+    id: "000000000000000000009000",
+    name: "Admin Demo",
+    email: "admin.demo@logbook.example",
+    role: ROLES.ADMIN,
+    isActive: true,
+    createdAt: "2026-08-01T09:00:00.000Z",
+    lastLogin: "2026-10-12T08:20:00.000Z",
+  },
+  {
+    id: "000000000000000000009001",
+    name: "Jordan Lee",
+    email: "jordan.lee@logbook.example",
+    role: ROLES.USER,
+    isActive: true,
+    createdAt: "2026-08-04T10:15:00.000Z",
+    lastLogin: "2026-10-11T16:05:00.000Z",
+  },
+  {
+    id: "000000000000000000009002",
+    name: "Morgan Patel",
+    email: "morgan.patel@logbook.example",
+    role: ROLES.USER,
+    isActive: true,
+    createdAt: "2026-08-09T11:30:00.000Z",
+    lastLogin: "2026-10-10T17:40:00.000Z",
+  },
+  {
+    id: "000000000000000000009003",
+    name: "Avery Chen",
+    email: "avery.chen@logbook.example",
+    role: ROLES.USER,
+    isActive: true,
+    createdAt: "2026-08-14T08:45:00.000Z",
+    lastLogin: "2026-10-09T13:10:00.000Z",
+  },
+  {
+    id: "000000000000000000009004",
+    name: "Riley Brooks",
+    email: "riley.brooks@logbook.example",
+    role: ROLES.USER,
+    isActive: false,
+    createdAt: "2026-08-19T14:00:00.000Z",
+    lastLogin: "2026-10-05T09:30:00.000Z",
+  },
+  {
+    id: "000000000000000000009005",
+    name: "Sam Rivera",
+    email: "sam.rivera@logbook.example",
+    role: ROLES.USER,
+    isActive: true,
+    createdAt: "2026-08-25T12:20:00.000Z",
+    lastLogin: "2026-10-08T10:30:00.000Z",
+  },
+]);

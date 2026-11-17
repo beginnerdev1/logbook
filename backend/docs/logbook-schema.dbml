@@ -1,0 +1,259 @@
+// Logbook System: MongoDB schema v1.0 (13 Oct 2026)
+// Import: open https://dbdiagram.io and paste this file into the editor.
+// MongoDB has no real foreign keys: the Refs below are logical ObjectId references.
+// Tables named embedded_* are sub-documents stored INSIDE entries, not collections.
+
+Project logbook_system {
+  database_type: 'MongoDB'
+  Note: 'Money is stored as integer centavos. Date-only fields are YYYY-MM-DD strings. Items marked CONFIRM are open questions.'
+}
+
+Enum logbook_type {
+  permit_certification
+  check
+  petty_cash
+  voucher
+  dtr_leave
+  travel_order
+  saln_mtop_bond_pds
+  certificate_of_appearance
+}
+
+Enum entry_status {
+  draft
+  pending
+  approved
+  rejected
+  failed
+}
+
+Enum entry_source {
+  ai
+  manual
+  import
+}
+
+Enum tracking_status {
+  received
+  returned
+}
+
+Enum user_role {
+  admin
+  user
+}
+
+Enum office_kind {
+  internal
+  external
+}
+
+// ---------------------------------------------------------------- collections
+
+Table entries [headercolor: #0F766E] {
+  _id ObjectId [pk]
+  referenceNo string [unique, not null, note: 'Server-generated, e.g. DOC-2026-00018']
+  logbookType logbook_type [not null]
+  entryDate string [not null, note: 'YYYY-MM-DD']
+  name string [not null, note: 'Exactly as written in the logbook']
+  particulars string [note: 'As written. Optional for travel_order']
+  documentTypeId ObjectId [note: 'Required for permit_certification, dtr_leave, saln_mtop_bond_pds']
+  documentTypeName string [note: 'Copied in for display']
+  officeId ObjectId [note: 'Required except when permit document rules hide it']
+  officeName string [note: 'Copied in for display; optional for permit_certification']
+  routingNote string
+  subject string [note: 'Cleaned description']
+  documentNumber string [note: 'Resolution, executive order, ordinance number']
+  counterparty string [note: 'Supplier or sender']
+  amountCentavos int [note: 'Whole centavos. Required for check, petty_cash, voucher']
+  tracking json [note: 'Embedded: see embedded_tracking']
+  remarks string [note: 'As written']
+  details json [note: 'Embedded, shape depends on logbookType: see embedded_details_*']
+  status entry_status [not null, default: 'draft', note: 'Verification status']
+  source entry_source [not null]
+  needsReview boolean [not null, default: false]
+  attachment json [note: 'Embedded: see embedded_attachment']
+  ai json [note: 'Embedded: see embedded_ai']
+  submittedBy ObjectId
+  submittedAt datetime
+  reviewedBy ObjectId
+  reviewedAt datetime
+  reviewerComment string
+  createdAt datetime
+  updatedAt datetime
+  "__v" int [note: 'Version counter, sent to the frontend as version']
+
+  indexes {
+    (logbookType, entryDate) [name: 'type_date']
+    (status, submittedAt) [name: 'approvals_queue']
+    (submittedBy, status, entryDate) [name: 'my_records']
+    (officeId, entryDate) [name: 'office_date']
+    (documentTypeId, entryDate) [name: 'doctype_date']
+    documentNumber [name: 'document_number_sparse']
+  }
+
+  Note: 'Text index on name, particulars, remarks with default_language none. optimisticConcurrency is on.'
+}
+
+Table users [headercolor: #0F766E] {
+  _id ObjectId [pk]
+  name string [not null]
+  email string [unique, not null, note: 'Lowercase']
+  passwordHash string [not null, note: 'bcrypt or argon2, never plain text']
+  role user_role [not null]
+  active boolean [not null, default: true]
+  officeId ObjectId
+  lastLoginAt datetime
+  failedLoginCount int [not null, default: 0]
+  lockedUntil datetime
+  passwordChangedAt datetime
+  mustChangePassword boolean [not null, default: false]
+  createdAt datetime
+}
+
+Table offices [headercolor: #0F766E] {
+  _id ObjectId [pk]
+  code string [unique, not null, note: 'Lowercase abbreviation, e.g. mdrrmo']
+  fullName string
+  kind office_kind [not null, note: 'CONFIRM which offices are external']
+  aliases "string[]"
+  active boolean [not null, default: true]
+}
+
+Table documentTypes [headercolor: #0F766E] {
+  _id ObjectId [pk]
+  name string [unique, not null]
+  aliases "string[]" [note: 'Typos and variants map here']
+  logbookTypes "logbook_type[]" [note: 'Where this type can be used']
+  fieldRules json [note: 'Permit-only field modes: hidden, optional, required; defaults to {}']
+  active boolean [not null, default: true]
+}
+
+Table counters [headercolor: #0F766E] {
+  _id string [pk, note: 'PREFIX-YEAR, e.g. DOC-2026']
+  seq int [not null, note: 'Atomic $inc']
+}
+
+Table activityLogs [headercolor: #0F766E] {
+  _id ObjectId [pk]
+  at datetime [not null]
+  userId ObjectId
+  userName string
+  action string [note: 'login, entry created, entry edited, approved, rejected, export, backup...']
+  resourceType string
+  resourceId ObjectId
+  resourceRef string [note: 'e.g. referenceNo']
+  result string
+  details string
+  changes json [note: 'Array of { field, from, to }']
+
+  indexes {
+    at
+    (resourceId, at)
+  }
+}
+
+Table sessions [headercolor: #0F766E] {
+  _id ObjectId [pk]
+  tokenHash string [unique, not null, note: 'SHA-256 hex digest; never store the raw cookie token']
+  userId ObjectId [not null]
+  remember boolean [not null, default: false]
+  createdAt datetime [not null]
+  lastSeenAt datetime [not null]
+  lastRenewedAt datetime [not null]
+  expiresAt datetime [not null, note: 'TTL index with expireAfterSeconds 0']
+  absoluteExpiresAt datetime [not null]
+  revokedAt datetime
+  userAgent string [note: 'Truncated to 200 characters']
+  ip string
+
+  indexes {
+    userId [name: 'session_user']
+    expiresAt [name: 'session_expiry_ttl', note: 'TTL expireAfterSeconds 0']
+  }
+}
+
+// ---------------------------------------------------------------- embedded sub-documents
+
+Table embedded_tracking [headercolor: #64748B, note: 'Embedded in entries.tracking (permit_certification)'] {
+  status tracking_status [not null]
+  returnedTime string [note: 'HH:mm, 24-hour. Never guess AM or PM: set needsReview']
+}
+
+Table embedded_attachment [headercolor: #64748B, note: 'Embedded in entries.attachment'] {
+  path string
+  mimeType string
+  sizeBytes int
+  originalName string
+}
+
+Table embedded_ai [headercolor: #64748B, note: 'Embedded in entries.ai (source = ai)'] {
+  extractedAt datetime
+  confidence json [note: 'fieldName -> 0 to 1']
+}
+
+Table embedded_details_check [headercolor: #64748B, note: 'entries.details when logbookType = check'] {
+  checkNumber string [not null, note: 'Text, keeps leading zeros']
+  bank string [note: 'CONFIRM']
+}
+
+Table embedded_details_petty_cash [headercolor: #64748B, note: 'entries.details when logbookType = petty_cash'] {
+  pcvNumber string [note: 'CONFIRM']
+}
+
+Table embedded_details_voucher [headercolor: #64748B, note: 'entries.details when logbookType = voucher'] {
+  voucherNumber string [note: 'CONFIRM']
+}
+
+Table embedded_details_dtr_leave [headercolor: #64748B, note: 'entries.details when logbookType = dtr_leave'] {
+  periodCovered string
+}
+
+Table embedded_details_travel_order [headercolor: #64748B, note: 'entries.details when logbookType = travel_order'] {
+  travelOrderNumber string [not null]
+  purposeOfTravel string [not null]
+  destination string [not null]
+  travelStartDate string [not null, note: 'YYYY-MM-DD']
+  travelEndDate string [not null, note: 'YYYY-MM-DD']
+  travelers "string[]" [note: 'Additional travelers']
+}
+
+Table embedded_details_code_received [headercolor: #64748B, note: 'entries.details when logbookType = saln_mtop_bond_pds or certificate_of_appearance'] {
+  codeNumber string [not null]
+  receivedBy string [not null]
+}
+
+// ---------------------------------------------------------------- logical references
+
+Ref: entries.officeId > offices._id
+Ref: entries.documentTypeId > documentTypes._id
+Ref: entries.submittedBy > users._id
+Ref: entries.reviewedBy > users._id
+Ref: users.officeId > offices._id
+Ref: activityLogs.userId > users._id
+Ref: activityLogs.resourceId > entries._id
+Ref: sessions.userId > users._id
+
+// ---------------------------------------------------------------- groups
+
+TableGroup collections {
+  entries
+  users
+  offices
+  documentTypes
+  counters
+  activityLogs
+  sessions
+}
+
+TableGroup embedded_in_entries {
+  embedded_tracking
+  embedded_attachment
+  embedded_ai
+  embedded_details_check
+  embedded_details_petty_cash
+  embedded_details_voucher
+  embedded_details_dtr_leave
+  embedded_details_travel_order
+  embedded_details_code_received
+}
